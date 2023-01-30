@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  api-gateway:
+    container_name: api-gateway
+    build: ./go-grpc-api-gateway
+    networks:
+      - go-project
+    ports:
+      - 3000:3000
+    depends_on:
+      - time-svc
+  time-svc:
+    container_name: time-svc
+    build: ./go-grpc-time-svc
+    networks:
+      - go-project
+    ports:
+      - 50051:50051
+    depends_on:
+      - rabbitmq
+  rabbitmq-consumer:
+    container_name: rabbitmq-consumer
+    build: ./go-rabbitMQ-consumer
+    networks:
+      - go-project
+    ports:
+      - 50052:50052
+    depends_on:
+      - rabbitmq
+      - time-svc
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: rabbitmq
+    networks:
+      - go-project
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+
+networks:
+  go-project:
